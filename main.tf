@@ -72,7 +72,7 @@ resource "aws_subnet" "sre_sacha_subnet_public" {
 # }
 # }
 
-
+# Creating a Security Group attached to VPC
 resource "aws_security_group" "sr_sacha_app_group"  {
   name = "sre_sacha_app_sg_terraform"
   description = "sre_sacha_app_sg_terraform"
@@ -107,6 +107,8 @@ resource "aws_security_group" "sr_sacha_app_group"  {
   }
 }
 
+
+# Creating a new internet gateway attached to the VPC
 resource "aws_internet_gateway" "sre_sacha_terraform_ig" {
   vpc_id = var.vpc_id
   tags = {
@@ -114,6 +116,7 @@ resource "aws_internet_gateway" "sre_sacha_terraform_ig" {
   }
 }
 
+# Creating a new route table, attach using internet gateway
 resource "aws_route_table" "sre_sacha_rt-public" {
 vpc_id = var.vpc_id
 route {

@@ -41,12 +41,12 @@ provider "aws" {
 
 ### Creating Resources on AWS
 - Let's start with Launching the EC2 instance using the app AMI
-- define the resource name
-- ami id ` `
-- `sre_key.pem` file
-- AWS keys set is already done (changed in environment variables)
-- public ip
-- type of the instance `t2micro` 
+    - define the resource name
+    - ami id
+    - `sre_key.pem` file
+    - AWS keys set is already done (changed in environment variables)
+    - public ip
+    - type of the instance `t2micro` 
 
 ```
 resource "aws_instance" "app_instance" {
@@ -66,15 +66,16 @@ resource "aws_instance" "app_instance" {
 
 - `terraform destroy` to delete instance you have created
 
-### Create a VPC
+## Create a VPC
 
 - delete your customised VPC and resources created inside the VPC
 - then create a VPC with Terraform
 
 - See [Networking documentation](https://github.com/sachadorf1/SRE_AWS_VPC_Networking) repo for setting up a VPC on AWS. We are using the same method but using Terraform.
 
-### step 1 create a vpc with your CDIR block
-- Create variable.tf folder and enter the following (using your own CIDR block e.g. 10.106.0.0/16):
+### Create a vpc with your CDIR block
+- Create variable.tf folder - This is where you can define variables for your vpc id, subnet id, security groups etc so you can use the variable names in your main.tf file, rather than the actual ids
+- In your main.tf folder, enter the following using your own CIDR block (e.g. 10.106.0.0/16):
 ```
 resource "aws_vpc" "main" {
   cidr_block       = "10.106.0.0/16"
@@ -89,23 +90,53 @@ resource "aws_vpc" "main" {
 - Run `terraform apply`
 
 - get the VPC ID from aws or terraform logs
-
-### step 2 create a public subnet using VPC ID
-- Add this to your main.tf file
+- add the VPC ID to your variable.tf file e.g.
 ```
-resource "aws_subnet" "sre_sacha_public" {
-  vpc_id     = "vpc-0ca8e735b4084d9cc"
-  cidr_block = "10.106.0.0/24"
+variable "vpc_id" {
+  default = "vpc-0ca8e735b4084d9cc"
+}
+```
+- Now you can write var.vpc_id to get the id of your vpc
+
+- Also add vpc_cidr (e.g. 10.106.0.0/16), public_subnet_cidr (e.g. 10.106.0.0/24), ami_id (Copy from Ubuntu 18), aws_key_name, aws_key_path to the variable.tf file in the same way as you did with the vpc_id
+```
+variable "aws_key_name" {
+    default = "sre_key"
+}
+```
+```
+variable "aws_key_path" {
+    default = "~/.ssh/sre_key.pem"
+}
+```
+### Create a public subnet using your VPC ID
+- Add the following to your main.tf file:
+```
+resource "aws_subnet" "sre_sacha_subnet_public" {
+  vpc_id     = var.vpc_id
+  cidr_block = var.public_subnet_cidr
+  map_public_ip_on_launch = "true"  # Makes this a public subnet
+  availability_zone = "eu-west-1a"
 
   tags = {
-    Name = "sre_sacha_public"
+    Name = "sre_sacha_subnet_public"
   }
 }
 ```
 
-### Step 3 create 
+- Add subnet_public_id to variable.tf
 
-
+### Create an internet gateway using your VPC ID
+- Add the following to your main.tf file:
+```
+resource "aws_internet_gateway" "sre_sacha_terraform_ig" {
+  vpc_id = var.vpc_id
+  tags = {
+    Name = "sre_sacha_terraform_ig"
+  }
+}
+```
+- Add internet_gateway_id to variable.tf file
 
 ## Data
 
@@ -115,18 +146,24 @@ Now we're building quickly. Let's add a few more parts of our architecture. For 
 
 > EXERCISE ( 5 Minutes ) : Find the resource needed to create a route table.
 
+### Create a new route table, attach using internet gateway
+- Add the following to your main.tf file:
 ```
-resource "aws_route_table" "public" {
-vpc_id = "${var.vpc_id}" route {
+resource "aws_route_table" "sre_sacha_rt-public" {
+vpc_id = var.vpc_id
+route {
 cidr_block = "0.0.0.0/0"
-gateway_id = "????"
-} tags = {
-Name = "${var.name}-public"
+gateway_id = var.internet_gateway_id
+}
+tags = {
+Name = "sre_sacha_rt-public"
 }
 }
 ```
-
-- grab a reference to the internet gateway for our VPC
+- Add def_route_table_id to variable.tf file
+### Grab a reference to the internet gateway for our VPC
+- Add the following to your main.tf file:
+```
 data
  "aws_internet_gateway" "default" {
 filter {
@@ -134,18 +171,65 @@ name = "attachment.vpc-id"
 values = ["${var.vpc_id}"]
 }
 }
+```
+### Creating a Security Group attached to your VPC
+- Add the following to your main.tf file, making sure to enter you ip address for port 22 access:
 
+```
+resource "aws_security_group" "sr_sacha_app_group"  {
+  name = "sre_sacha_app_sg_terraform"
+  description = "sre_sacha_app_sg_terraform"
+  vpc_id = var.vpc_id # attaching the SG with your own VPC
+  ingress {
+    from_port       = "80"
+    to_port         = "80"
+    protocol        = "tcp"
+    cidr_blocks     = ["0.0.0.0/0"]   
+  }
+  ingress {
+    from_port       = "22"
+    to_port         = "22"
+    protocol        = "tcp"
+    cidr_blocks     = ["enter you ip address here"]  
+  }
+    ingress {
+    from_port       = "3000"
+    to_port         = "3000"
+    protocol        = "tcp"
+    cidr_blocks     = ["0.0.0.0/0"]  
+  }
+  egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1" # allow all
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
 
-variable "aws_key_name" {
-
-    default = "sre_key"
-
+  tags = {
+    Name = "sre_sacha_app_sg_terraform"
+  }
 }
+```
+- Add security_group_id to variable.tf file 
 
-
-
-variable "aws_key_path" {
-
-    default = "~/.ssh/sre_key.pem"
-
+### Create an EC2 instance for your app
+- Add the following to your main.tf file:
+```
+resource "aws_instance" "sre_sacha_terraform_app" {
+  ami =  var.ami_id
+  subnet_id = var.subnet_public_id
+  vpc_security_group_ids = [var.security_group_id]
+  instance_type = "t2.micro"
+  associate_public_ip_address = true
+  key_name = var.aws_key_name
+  connection {
+		type = "ssh"
+		user = "ubuntu"
+		private_key = var.aws_key_path
+		host = "${self.associate_public_ip_address}"
+	} 
+  tags = {
+      Name = "sre_sacha_terraform_app"
+  }
 }
+```
