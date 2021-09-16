@@ -68,6 +68,8 @@ resource "aws_instance" "app_instance" {
 
 ## Create a VPC
 
+![](img/AWS_deployment_networking_security.png)
+
 - delete your customised VPC and resources created inside the VPC
 - then create a VPC with Terraform
 
