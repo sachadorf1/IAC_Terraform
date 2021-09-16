@@ -22,17 +22,6 @@ provider "aws" {
 # Let's start with Launching the EC2 instance using the app AMI
 # define the resource name
 
-# resource "aws_instance" "app_instance" {
-#   ami = "ami-00e8ddf087865b27f"
-#   vpc_id=
-#   subnet=
-#   sg=
-#   instance_type = "t2.micro"
-#   associate_public_ip_address = true
-#   tags = {
-#       Name = "sre_sacha_terraform_app"
-#   }
-# }
 
 # ami id ` `
 
@@ -47,7 +36,7 @@ provider "aws" {
 # get the VPC ID from aws or terraform logs
 
 resource "aws_vpc" "sre_sacha_vpc" {
-  cidr_block       = "10.106.0.0/16"
+  cidr_block       = var.vpc_cidr
   instance_tenancy = "default"
 
   tags = {
@@ -55,14 +44,14 @@ resource "aws_vpc" "sre_sacha_vpc" {
   }
 }  
 
-resource "aws_subnet" "sre_sacha_public" {
-  vpc_id     = "vpc-0ca8e735b4084d9cc"
-  cidr_block = "10.106.0.0/24"
+resource "aws_subnet" "sre_sacha_subnet_public" {
+  vpc_id     = var.vpc_id
+  cidr_block = var.public_subnet_cidr
   map_public_ip_on_launch = "true"  # Makes this a public subnet
   availability_zone = "eu-west-1a"
 
   tags = {
-    Name = "sre_sacha_public"
+    Name = "sre_sacha_subnet_public"
   }
 }
 
@@ -87,7 +76,7 @@ resource "aws_subnet" "sre_sacha_public" {
 resource "aws_security_group" "sr_sacha_app_group"  {
   name = "sre_sacha_app_sg_terraform"
   description = "sre_sacha_app_sg_terraform"
-  vpc_id = "vpc-0ca8e735b4084d9cc" # attaching the SG with your own VPC
+  vpc_id = var.vpc_id # attaching the SG with your own VPC
   ingress {
     from_port       = "80"
     to_port         = "80"
@@ -126,21 +115,27 @@ resource "aws_internet_gateway" "sre_sacha_terraform_ig" {
 }
 
 resource "aws_route_table" "sre_sacha_rt-public" {
-vpc_id = "${var.vpc_id}"
+vpc_id = var.vpc_id
 route {
 cidr_block = "0.0.0.0/0"
-gateway_id = "igw-0c908535cb474f16a"
+gateway_id = var.internet_gateway_id
 }
 tags = {
 Name = "sre_sacha_rt-public"
 }
 }
 
-resource "aws_route" "sre_sacha_route_ig_connection" {
-    route_table_id = var.def_route_table_id
-    destination_cidr_block = "0.0.0.0/0"
-    gateway_id = var.internet_gateway_id
+data "aws_internet_gateway" "default" {
+  filter {
+    name   = "attachment.vpc-id"
+    values = [var.vpc_id]
+  }
 }
+# resource "aws_route" "sre_sacha_route_ig_connection" {
+#     route_table_id = var.def_route_table_id
+#     destination_cidr_block = "0.0.0.0/0"
+#     gateway_id = var.internet_gateway_id
+# }
 
 
 
@@ -151,3 +146,25 @@ resource "aws_route" "sre_sacha_route_ig_connection" {
 #     Name = "sre_sacha_igw"
 #   }
 # }
+
+resource "aws_instance" "sre_sacha_terraform_app" {
+  ami =  var.ami_id
+  subnet_id = var.subnet_public_id
+  vpc_security_group_ids = [var.security_group_id]
+  instance_type = "t2.micro"
+  associate_public_ip_address = true
+  key_name = var.aws_key_name
+  connection {
+		type = "ssh"
+		user = "ubuntu"
+		private_key = var.aws_key_path
+		host = "${self.associate_public_ip_address}"
+	} 
+  tags = {
+      Name = "sre_sacha_terraform_app"
+  }
+}
+
+
+
+ 
