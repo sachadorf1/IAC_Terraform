@@ -4,6 +4,7 @@
 #### Setting up Terraform
 ##### Securing AWS keys for Terraform
 
+![](img/terraform_with_ansible.jpg)
 
 ### What is Terraform?
 - Open-source infrastructure as code software tool that provides a consistent Command Line Interface (CLI) workflow to manage hundreds of cloud services.
