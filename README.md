@@ -101,7 +101,7 @@ variable "vpc_id" {
 ```
 - Now you can write var.vpc_id to get the id of your vpc
 
-- Also add vpc_cidr (e.g. 10.106.0.0/16), public_subnet_cidr (e.g. 10.106.0.0/24), ami_id (Copy from Ubuntu 18), aws_key_name, aws_key_path to the variable.tf file in the same way as you did with the vpc_id
+- Also add vpc_cidr (e.g. 10.106.0.0/16), public_subnet_cidr (e.g. 10.106.1.0/24), ami_id (Copy from Ubuntu 18), aws_key_name, aws_key_path to the variable.tf file in the same way as you did with the vpc_id
 ```
 variable "aws_key_name" {
     default = "sre_key"
@@ -236,3 +236,9 @@ resource "aws_instance" "sre_sacha_terraform_app" {
   }
 }
 ```
+## For your DB:
+- Same vpc_id
+- Create a private subnet with private subnet CIDR
+### Create a private subnet
+- Add the private_subnet_cidr (e.g. 10.106.2.0/24)
+Creating a db instance
