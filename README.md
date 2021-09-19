@@ -40,8 +40,7 @@ provider "aws" {
 }
 ```
 
-- Let's run this code with `terraform init`
-
+- Let's run this code with `terraform init` 
 ### Creating Resources on AWS
 - Let's start with Launching the EC2 instance using the app AMI
     - define the resource name
@@ -69,8 +68,8 @@ resource "aws_instance" "app_instance" {
 
 - `terraform destroy` to delete instance you have created
 
+# Method 1 - Using variables.tf file and main.tf
 ## Create a VPC
-
 ![](img/AWS_deployment_networking_security.png)
 
 - delete your customised VPC and resources created inside the VPC
@@ -275,13 +274,13 @@ resource "aws_security_group" "sr_sacha_db_group"  {
     from_port       = "27017"
     to_port         = "27107"
     protocol        = "tcp"
-    cidr_blocks     = ["enter your app ip here"]   
+    cidr_blocks     = ["Enter your app ip here"]   
   }
   ingress {
     from_port       = "22"
     to_port         = "22"
     protocol        = "tcp"
-    cidr_blocks     = ["86.155.183.106/32"]  
+    cidr_blocks     = ["Enter your ip here"]  
   }
   egress {
     from_port       = 0
@@ -323,3 +322,39 @@ resource "aws_instance" "sre_sacha_terraform_db" {
 - `terraform plan`
 - `terraform apply`
 - You should see your db instance in AWS (and be able to ssh into it if you have given yourself port 22 access)
+
+# Method 2 - Outputs as Inputs
+- Outputs documentation https://www.terraform.io/docs/language/values/outputs.html
+
+Instead of manually inputting the ids into the variable.tf file and having to run the main.tf file one block at a time, we can use another format:
+
+id_of_resource = <'resource_type'><'resource_name'>.id
+e.g.
+```
+# vpc
+resource "aws_vpc" "sre_sacha_vpc" {
+  cidr_block       = var.vpc_cidr
+  instance_tenancy = "default"
+
+  tags = {
+    Name = "sre_sacha_vpc"
+  }
+}  
+
+# public subnet
+resource "aws_subnet" "sre_sacha_subnet_public" {
+  vpc_id     = aws_vpc.sre_sacha_vpc.id
+  cidr_block = var.public_subnet_cidr
+  map_public_ip_on_launch = "true"  # Makes this a public subnet
+  availability_zone = "eu-west-1a"
+
+  tags = {
+    Name = "sre_sacha_subnet_public"
+  }
+}
+```
+In this line, aws_vpc is the resource type and sre_sacha_vpc is the resource name:
+```
+vpc_id     = aws_vpc.sre_sacha_vpc.id
+```
+
