@@ -67,7 +67,7 @@ resource "aws_security_group" "sr_sacha_app_group"  {
     from_port       = "22"
     to_port         = "22"
     protocol        = "tcp"
-    cidr_blocks     = ["86.155.183.106/32"]  
+    cidr_blocks     = ["${var.myip}"]  
   }
     ingress {
     from_port       = "3000"
@@ -116,14 +116,15 @@ resource "aws_security_group" "sr_sacha_db_group"  {
     from_port       = "27017"
     to_port         = "27107"
     protocol        = "tcp"
-    cidr_blocks     = ["54.229.6.209/32"]   
+    cidr_blocks     = ["${aws_instance.sre_sacha_terraform_app.public_ip}"]   
   }
   ingress {
     from_port       = "22"
     to_port         = "22"
     protocol        = "tcp"
-    cidr_blocks     = ["${aws_instance.sre_sacha_terraform_app.public_ip}"]  
+    cidr_blocks     = ["${var.myip}"]  
   }
+  
   egress {
     from_port       = 0
     to_port         = 0
