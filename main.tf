@@ -128,7 +128,7 @@ resource "aws_security_group" "sr_sacha_db_group"  {
     from_port       = "27017"
     to_port         = "27107"
     protocol        = "tcp"
-    cidr_blocks     = ["3.250.169.35/32"]   
+    cidr_blocks     = ["54.229.6.209/32"]   
   }
   ingress {
     from_port       = "22"
@@ -229,3 +229,4 @@ resource "aws_instance" "sre_sacha_terraform_db" {
       Name = "sre_sacha_terraform_db"
   }
 }
+

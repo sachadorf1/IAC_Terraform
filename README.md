@@ -9,6 +9,8 @@
 ### What is Terraform?
 - Open-source infrastructure as code software tool that provides a consistent Command Line Interface (CLI) workflow to manage hundreds of cloud services.
 
+### Why Terraform?
+
 ### `terraform init`
 - 
 
@@ -101,7 +103,7 @@ variable "vpc_id" {
 ```
 - Now you can write var.vpc_id to get the id of your vpc
 
-- Also add vpc_cidr (e.g. 10.106.0.0/16), public_subnet_cidr (e.g. 10.106.1.0/24), ami_id (Copy from Ubuntu 18), aws_key_name, aws_key_path to the variable.tf file in the same way as you did with the vpc_id
+- Also add vpc_cidr (e.g. 10.106.0.0/16), public_subnet_cidr (e.g. 10.106.1.0/24), ami_app_id (Use the ami you previously created for your app), aws_key_name, aws_key_path to the variable.tf file in the same way as you did with the vpc_id
 ```
 variable "aws_key_name" {
     default = "sre_key"
@@ -236,9 +238,88 @@ resource "aws_instance" "sre_sacha_terraform_app" {
   }
 }
 ```
+- You should see your app instance in AWS
 ## For your DB:
 - Same vpc_id
 - Create a private subnet with private subnet CIDR
+- In variable.tf
+    - Add the ami_db_id (Use the ami you created previously for your db)
+    - Add the private_subnet_cidr (e.g. 10.106.2.0/24)
 ### Create a private subnet
-- Add the private_subnet_cidr (e.g. 10.106.2.0/24)
-Creating a db instance
+- Add the following to your main.tf file:
+```
+resource "aws_subnet" "sre_sacha_subnet_private" {
+  vpc_id     = var.vpc_id
+  cidr_block = var.private_subnet_cidr
+  map_public_ip_on_launch = "false"  # Makes this a public subnet
+  availability_zone = "eu-west-1a"
+
+  tags = {
+    Name = "sre_sacha_subnet_private"
+  }
+}
+```
+- `terraform plan`
+- `terraform apply`
+- Add subnet_private_id to variable.tf
+
+### Create a db security group attached to the VPC
+- Add the following to your main.tf file:
+- Use the app ip from 
+```
+resource "aws_security_group" "sr_sacha_db_group"  {
+  name = "sre_sacha_db_sg_terraform"
+  description = "sre_sacha_db_sg_terraform"
+  vpc_id = var.vpc_id # attaching the SG with your own VPC
+  ingress {
+    from_port       = "27017"
+    to_port         = "27107"
+    protocol        = "tcp"
+    cidr_blocks     = ["enter your app ip here"]   
+  }
+  ingress {
+    from_port       = "22"
+    to_port         = "22"
+    protocol        = "tcp"
+    cidr_blocks     = ["86.155.183.106/32"]  
+  }
+  egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1" # allow all
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "sre_sacha_db_sg_terraform"
+  }
+}
+```
+- Add security_group_db_id to the variable.tf file
+- `terraform plan`
+- `terraform apply`
+### Creating a db instance
+
+```
+resource "aws_instance" "sre_sacha_terraform_db" {
+  ami =  var.ami_db_id
+  subnet_id = var.subnet_private_id
+  vpc_security_group_ids = [var.security_group_db_id]
+  instance_type = "t2.micro"
+  associate_public_ip_address = true
+  key_name = var.aws_key_name
+  connection {
+		type = "ssh"
+		user = "ubuntu"
+		private_key = var.aws_key_path
+		host = "${self.associate_public_ip_address}"
+        # host = aws_instance.app_instance.public_ip
+	} 
+  tags = {
+      Name = "sre_sacha_terraform_db"
+  }
+}
+```
+- `terraform plan`
+- `terraform apply`
+- You should see your db instance in AWS (and be able to ssh into it if you have given yourself port 22 access)
