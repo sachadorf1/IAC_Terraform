@@ -116,7 +116,7 @@ resource "aws_security_group" "sr_sacha_db_group"  {
     from_port       = "27017"
     to_port         = "27107"
     protocol        = "tcp"
-    cidr_blocks     = ["${aws_instance.sre_sacha_terraform_app.public_ip}"]   
+    cidr_blocks     = ["${aws_instance.sre_sacha_terraform_app.public_ip}/32"]   
   }
   ingress {
     from_port       = "22"
@@ -139,8 +139,8 @@ resource "aws_security_group" "sr_sacha_db_group"  {
 
 resource "aws_instance" "sre_sacha_terraform_db" {
   ami =  var.ami_db_id
-  subnet_id = var.subnet_private_id
-  vpc_security_group_ids = [var.security_group_db_id]
+  subnet_id = aws_subnet.sre_sacha_subnet_private.id
+  vpc_security_group_ids = [aws_security_group.sr_sacha_db_group.id]
   instance_type = "t2.micro"
   associate_public_ip_address = true
   key_name = var.aws_key_name
