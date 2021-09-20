@@ -2,6 +2,7 @@
 - [Terraform Orchestration](#terraform-orchestration)
     - [What is Terraform?](#what-is-terraform)
     - [Why Terraform?](#why-terraform)
+    - [Terraform commands](#terraform-commands)
       - [`terraform init`](#terraform-init)
       - [`terraform plan`](#terraform-plan)
       - [`terraform apply`](#terraform-apply)
@@ -33,7 +34,7 @@
 - Open-source infrastructure as code software tool that provides a consistent Command Line Interface (CLI) workflow to manage hundreds of cloud services.
 
 ### Why Terraform?
-
+### Terraform commands
 #### `terraform init`
 - Initialises a working directory containing Terraform configuration files
 - The first command that should be run after writing a new Terraform configuration or cloning an existing one from version control.
