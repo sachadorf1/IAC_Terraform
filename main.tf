@@ -156,3 +156,33 @@ resource "aws_instance" "sre_sacha_terraform_db" {
   }
 }
 
+
+# Creating a launch template
+resource "aws_launch_template" "sre_sacha_launch_template_terraform" {
+  name = "sre_sacha_launch_template_terraform"
+  description = "sre_sacha_launch_template_terraform"
+
+  image_id = var.ami_app_id
+
+  instance_type = "t2.micro"
+
+  key_name = var.aws_key_name
+
+  vpc_security_group_ids = [aws_security_group.sr_sacha_app_group.id]
+  tags = {
+      Name = "sre_sacha_launch_template_terraform"
+  }
+}
+
+# Create Auto Scaling Group
+resource "aws_autoscaling_group" "sre_sacha_autoscale_terraform" {
+  availability_zones = ["eu-west-1a"]
+  desired_capacity   = 1
+  max_size           = 3
+  min_size           = 1
+
+  launch_template {
+    id      = aws_launch_template.sre_sacha_launch_template_terraform.id
+    version = "$Latest"
+  }
+}

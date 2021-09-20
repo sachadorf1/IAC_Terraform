@@ -1,9 +1,32 @@
 # Terraform Orchestration
-## What is Terraform
-### Why Terraform
-#### Setting up Terraform
-##### Securing AWS keys for Terraform
-
+- [Terraform Orchestration](#terraform-orchestration)
+    - [What is Terraform?](#what-is-terraform)
+    - [Why Terraform?](#why-terraform)
+    - [`terraform init`](#terraform-init)
+    - [`terraform plan`](#terraform-plan)
+    - [`terraform apply`](#terraform-apply)
+    - [`terraform destroy`](#terraform-destroy)
+    - [Setting up Terraform](#setting-up-terraform)
+      - [Securing AWS keys for Terraform](#securing-aws-keys-for-terraform)
+    - [Creating Resources on AWS](#creating-resources-on-aws)
+- [Method 1 - Using variables.tf file and main.tf](#method-1---using-variablestf-file-and-maintf)
+  - [Create a VPC](#create-a-vpc)
+    - [Create a vpc with your CDIR block](#create-a-vpc-with-your-cdir-block)
+    - [Create a public subnet using your VPC ID](#create-a-public-subnet-using-your-vpc-id)
+    - [Create an internet gateway using your VPC ID](#create-an-internet-gateway-using-your-vpc-id)
+  - [Data](#data)
+    - [Create a new route table, attach using internet gateway](#create-a-new-route-table-attach-using-internet-gateway)
+    - [Grab a reference to the internet gateway for our VPC](#grab-a-reference-to-the-internet-gateway-for-our-vpc)
+    - [Creating a Security Group attached to your VPC](#creating-a-security-group-attached-to-your-vpc)
+    - [Create an EC2 instance for your app](#create-an-ec2-instance-for-your-app)
+  - [For your DB:](#for-your-db)
+    - [Create a private subnet](#create-a-private-subnet)
+    - [Create a db security group attached to the VPC](#create-a-db-security-group-attached-to-the-vpc)
+    - [Creating a db instance](#creating-a-db-instance)
+- [Method 2 - Outputs as Inputs](#method-2---outputs-as-inputs)
+  - [main.tf using method 2](#maintf-using-method-2)
+  - [Create CloudWatch for you app -Monitoring-Load Balancer - Application ALB - Network Load Balancer - together Autoscaling group](#create-cloudwatch-for-you-app--monitoring-load-balancer---application-alb---network-load-balancer---together-autoscaling-group)
+    - [Step 1: Create a launch template](#step-1-create-a-launch-template)
 ![](img/terraform_with_ansible.jpg)
 
 ### What is Terraform?
@@ -25,6 +48,7 @@
 - terraform apply -destroy
 
 ### Setting up Terraform
+#### Securing AWS keys for Terraform
 - Create env var to secure AWS keys
     - In Windows, `Edit the system environment variables` -> `Advanced` -> `Environment Variables...` -> Under `User variables for Sacha`, click `New...`
     - Variable Name: AWS_ACCESS_KEY_ID -> Variable Value: (copy value from excel file)
@@ -518,3 +542,7 @@ resource "aws_instance" "sre_sacha_terraform_db" {
   }
 }
 ```
+
+## Create CloudWatch for you app -Monitoring-Load Balancer - Application ALB - Network Load Balancer - together Autoscaling group
+See my [SRE_Monitoring Repo](https://github.com/sachadorf1/SRE_Monitoring) for step by step via AWS
+### Step 1: Create a launch template
