@@ -35,6 +35,7 @@
 
 ### Why Terraform?
 ### Terraform commands
+![](img/init_plan_apply.png)
 #### `terraform init`
 - Initialises a working directory containing Terraform configuration files
 - The first command that should be run after writing a new Terraform configuration or cloning an existing one from version control.
