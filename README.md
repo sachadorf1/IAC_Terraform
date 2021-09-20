@@ -2,10 +2,10 @@
 - [Terraform Orchestration](#terraform-orchestration)
     - [What is Terraform?](#what-is-terraform)
     - [Why Terraform?](#why-terraform)
-    - [`terraform init`](#terraform-init)
-    - [`terraform plan`](#terraform-plan)
-    - [`terraform apply`](#terraform-apply)
-    - [`terraform destroy`](#terraform-destroy)
+      - [`terraform init`](#terraform-init)
+      - [`terraform plan`](#terraform-plan)
+      - [`terraform apply`](#terraform-apply)
+      - [`terraform destroy`](#terraform-destroy)
     - [Setting up Terraform](#setting-up-terraform)
       - [Securing AWS keys for Terraform](#securing-aws-keys-for-terraform)
     - [Creating Resources on AWS](#creating-resources-on-aws)
@@ -34,16 +34,18 @@
 
 ### Why Terraform?
 
-### `terraform init`
-- 
+#### `terraform init`
+- Initialises a working directory containing Terraform configuration files
+- The first command that should be run after writing a new Terraform configuration or cloning an existing one from version control.
+- It is safe to run this command multiple times.
 
-### `terraform plan`
+#### `terraform plan`
 - Creates an execution plan
 - Comparing the current configuration to the prior state and noting any differences.
-### `terraform apply`
+#### `terraform apply`
 - Executes the actions proposed in a Terraform plan
 
-### `terraform destroy`
+#### `terraform destroy`
 - Destroys all remote objects managed by a particular Terraform configuration
 - terraform apply -destroy
 
