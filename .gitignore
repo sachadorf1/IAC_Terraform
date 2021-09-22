@@ -5,3 +5,5 @@ terraform.tfstate.backup
 variable.tf
 output.tf
 first_mainfile.txt
+.metals/
+.vscode/
