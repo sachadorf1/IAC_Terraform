@@ -15,7 +15,6 @@
     - [Create a vpc with your CDIR block](#create-a-vpc-with-your-cdir-block)
     - [Create a public subnet using your VPC ID](#create-a-public-subnet-using-your-vpc-id)
     - [Create an internet gateway using your VPC ID](#create-an-internet-gateway-using-your-vpc-id)
-  - [Data](#data)
     - [Create a new route table, attach using internet gateway](#create-a-new-route-table-attach-using-internet-gateway)
     - [Grab a reference to the internet gateway for our VPC](#grab-a-reference-to-the-internet-gateway-for-our-vpc)
     - [Creating a Security Group attached to your VPC](#creating-a-security-group-attached-to-your-vpc)
@@ -180,14 +179,6 @@ resource "aws_internet_gateway" "sre_sacha_terraform_ig" {
 }
 ```
 - Add internet_gateway_id to variable.tf file
-
-## Data
-
-Now we're building quickly. Let's add a few more parts of our architecture. For example, our subnet is currently using the default route table which is private. Let's create a new route table and associate it with our public subnet.
-
-
-
-> EXERCISE ( 5 Minutes ) : Find the resource needed to create a route table.
 
 ### Create a new route table, attach using internet gateway
 - Add the following to your main.tf file:
